@@ -26,7 +26,13 @@
             .mobile-only { display: none !important; }
         }
         .img-placeholder {
-            height: 100px; width: 100px; display: flex; align-items: center; justify-content: center; font-size: 2rem; border-radius: 0.5rem;
+            height: 100px; width: 100px; display: flex; align-items: center; justify-content: center; font-size: 2rem; border-radius: 0.5rem; 
+        }
+
+        .no-select {
+            -webkit-user-select: none; /* Safari */
+            -ms-user-select: none; /* IE 10 and IE 11 */
+            user-select: none; /* Standard syntax */
         }
     </style>
 </head>
@@ -44,12 +50,12 @@
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav ms-auto">
                 <li class="nav-item">
-                    <a class="nav-link active" href="#" onclick="showPage('order'); return false;" id="nav-link-order">
+                    <a class="nav-link active" href="{{ url('/') }}">
                         <i class="fas fa-cash-register me-1"></i> Order
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="#" onclick="showPage('history'); return false;" id="nav-link-history">
+                    <a class="nav-link" href="{{ url('/pos/history') }}">
                         <i class="fas fa-history me-1"></i> History
                     </a>
                 </li>
@@ -60,6 +66,7 @@
 
 <div class="container-fluid py-3">
 
+    <!-- PAGE: ORDER -->
     <!-- PAGE: ORDER -->
     <div id="page-order">
         <div class="row">
@@ -130,21 +137,7 @@
         </div>
     </div>
 
-    <!-- PAGE: HISTORY -->
-    <div id="page-history" class="d-none">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <h4 class="fw-bold"><i class="fas fa-clock me-2"></i>Transaction History</h4>
-            <button class="btn btn-outline-primary" onclick="fetchHistory()"><i class="fas fa-sync-alt"></i> Refresh</button>
-        </div>
-        <div class="card border-0 shadow-sm">
-            <div class="card-body">
-                <div id="history-list" class="row g-3">
-                    <!-- Injected via JS -->
-                    <div class="text-center py-5 text-muted">Loading history...</div>
-                </div>
-            </div>
-        </div>
-    </div>
+
 
 </div>
 
@@ -205,21 +198,12 @@
             renderMenu();
         } catch (e) {
             console.error(e);
-            alert('Failed to load menu: ' + e.message);
+            console.error(e);
+            showToast('Failed to load menu: ' + e.message, 'danger');
         }
     }
 
-    async function fetchHistory() {
-        try {
-            const res = await fetch('{{ url("/api/orders") }}');
-            let orders = await res.json();
-            orders = orders.reverse(); // Newest first
-            renderHistory(orders);
-        } catch (e) {
-            console.error(e);
-            document.getElementById('history-list').innerHTML = '<p class="text-center text-danger">Failed to load history.</p>';
-        }
-    }
+
 
     async function submitOrder() {
         const payload = {
@@ -243,10 +227,10 @@
     async function requestPrint(orderId) {
        try {
            const res = await fetch(`{{ url("/api/orders") }}/${orderId}/print`, { method: 'POST' });
-           if(res.ok) alert('Print command sent!');
-           else alert('Print failed (Check server logs)');
+           if(res.ok) showToast('Print command sent!', 'success');
+           else showToast('Print failed (Check server logs)', 'danger');
        } catch (e) {
-           alert('Print connection error');
+           showToast('Print connection error', 'danger');
        }
     }
 
@@ -257,18 +241,18 @@
         grid.innerHTML = menuItems.map(item => {
             const isUrl = item.image_asset && (item.image_asset.startsWith('http') || item.image_asset.includes('/'));
             const imageHtml = isUrl 
-                ? `<img src="${item.image_asset}" class="img-fluid rounded" style="max-height: 80px;" alt="${item.name}">`
+                ? `<img src="${item.image_asset}" class="w-100 h-100 rounded" style="object-fit: cover;" alt="${item.name}">`
                 : `<i class="fas fa-${item.image_asset || 'utensils'}"></i>`;
             
             return `
             <div class="col-6 col-md-4 col-lg-3">
-                <div class="card h-100 border-0 shadow-sm menu-item-card" onclick="addToCart(${item.id})">
+                <div class="card h-100 border-0 shadow-sm menu-item-card no-select" onclick="addToCart(${item.id})">
                     <div class="card-body p-2 d-flex flex-col align-items-center text-center">
                         <div class="img-placeholder bg-light text-secondary mb-2 overflow-hidden">
                              ${imageHtml}
                         </div>
-                        <h6 class="card-title fw-bold text-dark mb-1 text-truncate w-100">${item.name}</h6>
-                        <p class="card-text text-primary fw-bold">Rp ${Number(item.price).toLocaleString()}</p>
+                        <h6 class="card-title fw-bold text-dark mb-1 text-truncate w-100 no-select">${item.name}</h6>
+                        <p class="card-text text-primary fw-bold no-select">Rp ${Number(item.price).toLocaleString()}</p>
                     </div>
                 </div>
             </div>
@@ -294,7 +278,11 @@
             <div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-2">
                 <div>
                     <h6 class="mb-0 fw-bold">${item.name}</h6>
-                    <small class="text-muted">Rp ${Number(item.price).toLocaleString()} x ${item.qty}</small>
+                    <div class="d-flex align-items-center mt-1">
+                        <small class="text-muted me-2">Rp ${Number(item.price).toLocaleString()} x </small>
+                        <input type="number" class="form-control form-control-sm p-1 text-center" style="width: 60px" 
+                            value="${item.qty}" min="1" onchange="updateCartQty(${item.id}, this.value)">
+                    </div>
                 </div>
                 <div class="d-flex align-items-center">
                     <span class="fw-bold me-3">Rp ${(item.price * item.qty).toLocaleString()}</span>
@@ -314,40 +302,7 @@
         updateMobileBadge(totalQty);
     }
 
-    function renderHistory(orders) {
-        const html = orders.map(order => `
-            <div class="col-md-6 col-lg-4">
-                <div class="card h-100 border-0 shadow-sm">
-                    <div class="card-header bg-white d-flex justify-content-between align-items-center">
-                        <span class="fw-bold">Order #${order.id}</span>
-                        <span class="badge bg-success">PAID</span>
-                    </div>
-                    <div class="card-body">
-                         <p class="small text-muted mb-2"><i class="far fa-calendar-alt me-1"></i> ${new Date(order.created_at).toLocaleString()}</p>
-                        <div class="bg-light p-2 rounded mb-2" style="max-height: 150px; overflow-y: auto;">
-                            ${order.order_items.map(i => `
-                                <div class="d-flex justify-content-between small">
-                                    <span>${i.quantity}x ${i.menu_name}</span>
-                                    <span>Rp ${Number(i.subtotal).toLocaleString()}</span>
-                                </div>
-                            `).join('')}
-                        </div>
-                        <div class="d-flex justify-content-between align-items-center fw-bold">
-                             <span>TOTAL</span>
-                             <span>Rp ${Number(order.total_amount).toLocaleString()}</span>
-                        </div>
-                    </div>
-                    <div class="card-footer bg-white border-top-0 text-end">
-                        <button class="btn btn-sm btn-dark" onclick="requestPrint(${order.id})">
-                             <i class="fas fa-print me-1"></i> Reprint Receipt
-                        </button>
-                    </div>
-                </div>
-            </div>
-        `).join('');
 
-        document.getElementById('history-list').innerHTML = html || '<div class="col-12 text-center text-muted">No history found.</div>';
-    }
 
     function updateTotals(sub, tax, total) {
         document.getElementById('summ-subtotal').innerText = 'Rp ' + sub.toLocaleString();
@@ -364,6 +319,16 @@
 
 
     // --- ACTIONS ---
+    function updateCartQty(id, qty) {
+        qty = parseInt(qty);
+        if (isNaN(qty) || qty < 1) qty = 1;
+        const item = cart.find(c => c.id === id);
+        if (item) {
+            item.qty = qty;
+            renderCart();
+        }
+    }
+
     function addToCart(id) {
         const item = menuItems.find(i => i.id === id);
         const existing = cart.find(c => c.id === id);
@@ -380,20 +345,7 @@
         renderCart();
     }
 
-    // --- NAVIGATION LOGIC ---
-    function showPage(pageId) {
-        // Toggle Pages
-        document.getElementById('page-order').classList.toggle('d-none', pageId !== 'order');
-        document.getElementById('page-history').classList.toggle('d-none', pageId !== 'history');
-        
-        // Toggle Nav Active State
-        document.getElementById('nav-link-order').classList.toggle('active', pageId === 'order');
-        document.getElementById('nav-link-history').classList.toggle('active', pageId === 'history');
 
-        if(pageId === 'history') {
-            fetchHistory();
-        }
-    }
 
     // Mobile Cart Toggle (Within "Order" Page)
     function toggleCartMobile() {
@@ -427,7 +379,7 @@
             const order = await submitOrder();
             currentOrderId = order.id;
             
-            // Success State
+
             document.getElementById('payment-step-1').classList.add('d-none');
             document.getElementById('payment-step-success').classList.remove('d-none');
             document.getElementById('success-order-id').innerText = order.id;
@@ -437,7 +389,7 @@
             renderCart();
             
         } catch (e) {
-            alert('Payment Processing Failed!');
+            showToast('Payment Processing Failed!', 'danger');
         }
     }
     
@@ -448,6 +400,46 @@
     // --- INIT ---
     fetchMenu();
     updateMobileBadge(0); 
+</script>
+<!-- Toast Container -->
+<div class="toast-container position-fixed bottom-0 end-0 p-3" id="toast-container"></div>
+
+<script>
+    function showToast(message, type = 'primary') {
+        const container = document.getElementById('toast-container');
+        const id = 'toast-' + Date.now();
+        
+        let icon = 'info-circle';
+        if(type === 'success') icon = 'check-circle';
+        if(type === 'danger') icon = 'exclamation-triangle';
+        if(type === 'warning') icon = 'exclamation-circle';
+
+        const html = `
+            <div id="${id}" class="toast align-items-center text-white bg-${type} border-0" role="alert" aria-live="assertive" aria-atomic="true">
+                <div class="d-flex">
+                    <div class="toast-body">
+                        <i class="fas fa-${icon} me-2"></i> ${message}
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+            </div>
+        `;
+        
+        const temp = document.createElement('div');
+        temp.innerHTML = html;
+        const toastEl = temp.firstElementChild;
+        container.appendChild(toastEl);
+        
+        const toast = new bootstrap.Toast(toastEl, { delay: 3000 });
+        toast.show();
+        
+        toastEl.addEventListener('hidden.bs.toast', () => {
+            toastEl.remove();
+        });
+    }
+
+    // Override generic alert just in case
+    window.alert = function(msg) { showToast(msg, 'warning'); }
 </script>
 </body>
 </html>

@@ -58,7 +58,7 @@ class OrderController extends Controller
                 'tax_amount' => $taxAmount,
                 'total_amount' => $totalAmount,
                 'payment_method' => $validated['payment_method'],
-                'payment_status' => 'PAID',  // Default to PAID as per mockup flow usually implies immediate payment
+                'payment_status' => 'PAID',
             ]);
 
             $order->orderItems()->createMany($orderItemsData);
@@ -80,8 +80,7 @@ class OrderController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        // Usually orders are not updated after payment, but here for completeness
-        // Only allow updating status maybe?
+        // Just for updating payment status
         $order = Order::findOrFail($id);
         $order->update($request->only(['payment_status']));
         return $order;
@@ -92,7 +91,8 @@ class OrderController extends Controller
      */
     public function destroy(string $id)
     {
-        Order::destroy($id);
-        return response()->noContent();
+        // No deleting orders :3, but here for completeness
+        // Order::destroy($id); 
+        // return response()->noContent();
     }
 }

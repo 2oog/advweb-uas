@@ -89,7 +89,7 @@
             <div class="col-md-6 col-lg-4">
                 <div class="card h-100 border-0 shadow-sm">
                     <div class="card-header bg-white d-flex justify-content-between align-items-center">
-                        <span class="fw-bold">Order #${order.id}</span>
+                        <span class="fw-bold">Order #${order.id} <span class="badge bg-secondary ms-1">Tbl ${order.table_number || '-'}</span></span>
                         <span class="badge bg-success">PAID</span>
                     </div>
                     <div class="card-body">

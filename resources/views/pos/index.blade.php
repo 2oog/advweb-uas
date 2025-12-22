@@ -110,6 +110,12 @@
 
                         <!-- Totals Section -->
                         <div class="p-3 bg-light border-top">
+                            <!-- Table Number Input -->
+                            <div class="mb-3">
+                                <label for="table-number" class="form-label small fw-bold text-muted">Table Number</label>
+                                <input type="text" class="form-control" id="table-number" placeholder="e.g. 5A">
+                            </div>
+
                             <div class="d-flex justify-content-between mb-1">
                                 <span>Subtotal</span>
                                 <span class="fw-bold" id="summ-subtotal">Rp 0</span>
@@ -206,8 +212,15 @@
 
 
     async function submitOrder() {
+        const tableNum = document.getElementById('table-number').value;
+        if (!tableNum) {
+            showToast('Please enter a table number!', 'warning');
+            throw new Error('Table number required');
+        }
+
         const payload = {
             payment_method: 'QRIS',
+            table_number: tableNum,
             items: cart.map(i => ({ id: i.id, quantity: i.qty }))
         };
 

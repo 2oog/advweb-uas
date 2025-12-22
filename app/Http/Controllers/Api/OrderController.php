@@ -85,6 +85,7 @@ class OrderController extends Controller
         // Just for updating payment status
         $order = Order::findOrFail($id);
         $order->update($request->only(['payment_status']));
+
         return $order;
     }
 
@@ -94,7 +95,7 @@ class OrderController extends Controller
     public function destroy(string $id)
     {
         // No deleting orders :3, but here for completeness
-        // Order::destroy($id); 
+        // Order::destroy($id);
         // return response()->noContent();
     }
 }

@@ -3,7 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\MenuItem;
-use Illuminate\Database\Seeder;
+use Illuminate\Dadtabase\Seeder;
 
 class MenuItemSeeder extends Seeder
 {

@@ -97,6 +97,7 @@ Manage customer orders.
 -   **Description**: Creates a new order. Calculates subtotal, tax (10%), and total automatically.
 -   **Body Parameters**:
     -   `payment_method` (required, string)
+    -   `table_number` (required, string)
     -   `items` (required, array of objects):
         -   `id` (required, integer) - Menu item ID
         -   `quantity` (required, integer, min:1)
@@ -104,6 +105,7 @@ Manage customer orders.
     ```json
     {
         "payment_method": "cash",
+        "table_number": "12",
         "items": [
             { "id": 1, "quantity": 2 },
             { "id": 5, "quantity": 1 }

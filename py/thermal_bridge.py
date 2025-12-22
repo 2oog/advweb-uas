@@ -102,9 +102,7 @@ def print_receipt(order: dict):
     thermal.textln("Resto POS")
 
     set_normal("center")
-    thermal.textln("Jl. Raya Kedung Baruk No.98, Surabaya")
-    thermal.textln("Telp: (031) 8721731")
-
+    thermal.textln("Jl. Raya Kedung Baruk No.98,\nSurabaya. Telp: (031) 8721731")
     hr()
 
     # Order info

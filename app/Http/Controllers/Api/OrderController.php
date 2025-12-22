@@ -25,6 +25,7 @@ class OrderController extends Controller
     {
         $validated = $request->validate([
             'payment_method' => 'required|string',
+            'table_number' => 'required|string',
             'items' => 'required|array',
             'items.*.id' => 'required|exists:menu_items,id',
             'items.*.quantity' => 'required|integer|min:1',
@@ -54,6 +55,7 @@ class OrderController extends Controller
 
             $order = Order::create([
                 'order_date' => now(),
+                'table_number' => $validated['table_number'],
                 'subtotal' => $subtotal,
                 'tax_amount' => $taxAmount,
                 'total_amount' => $totalAmount,

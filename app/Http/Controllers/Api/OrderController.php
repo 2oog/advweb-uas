@@ -13,9 +13,24 @@ class OrderController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        return Order::with('orderItems')->get();
+        $query = Order::with('orderItems');
+
+        if ($request->has('month') && $request->has('year')) {
+            $query->whereYear('order_date', $request->year)
+                  ->whereMonth('order_date', $request->month);
+        }
+
+        if ($request->has('sort_by')) {
+            $sortDir = $request->get('sort_dir', 'desc');
+            $query->orderBy($request->sort_by, $sortDir);
+        } else {
+            // Default sort
+            $query->orderBy('order_date', 'desc');
+        }
+
+        return $query->get();
     }
 
     /**

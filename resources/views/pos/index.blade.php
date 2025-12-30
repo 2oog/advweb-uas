@@ -101,7 +101,7 @@
                     
                     <div class="card-body p-0 d-flex flex-column" style="height: 100%;">
                         <!-- Cart Items -->
-                        <div class="flex-grow-1 overflow-auto p-3" id="cart-items">
+                        <div class="grow overflow-auto p-3" id="cart-items">
                             <div class="text-center text-muted mt-5">
                                 <i class="fas fa-shopping-basket fa-3x mb-3 opacity-50"></i>
                                 <p>Cart is empty</p>
@@ -380,6 +380,19 @@
     const paymentModal = new bootstrap.Modal(document.getElementById('paymentModal'));
 
     function showPaymentModal() {
+        // Validation: Empty Cart
+        if (cart.length === 0) {
+            showToast('Cart is empty!', 'warning');
+            return;
+        }
+
+        // Validation: Table Number
+        const tableNum = document.getElementById('table-number').value;
+        if (!tableNum || tableNum.trim() === '') {
+            showToast('Please enter a table number!', 'warning');
+            return;
+        }
+
         document.getElementById('payment-step-1').classList.remove('d-none');
         document.getElementById('payment-step-success').classList.add('d-none');
         paymentModal.show();
